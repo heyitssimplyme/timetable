@@ -4,7 +4,7 @@ on: push
 
 jobs:
   publish:
-    name: Build for ${{ matrix.name }}
+    name: Build for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -13,26 +13,14 @@ jobs:
             os: ubuntu-latest
             artifact_name: target/release/timetable
             asset_name: timetable-linux
-            target: x86_64-unknown-linux-gnu
-            cross: false
-          - name: armv7
-            os: ubuntu-latest
-            artifact_name: target/release/timetable
-            asset_name: timetable-armv7
-            target: armv7-unknown-linux-gnueabihf
-            cross: true
           - name: windows
             os: windows-latest
             artifact_name: target/release/timetable.exe
             asset_name: timetable-win
-            target: x86_64-pc-windows-msvc
-            cross: false
           - name: macos
             os: macos-latest
             artifact_name: target/release/timetable
             asset_name: timetable-mac
-            target: x86_64-apple-darwin
-            cross: false
 
     steps:
     - uses: actions/checkout@v1
@@ -41,7 +29,6 @@ jobs:
       with:
         profile: minimal
         toolchain: stable
-        target: ${{ matrix.target }}
 
     - uses: actions/cache@v2
       with:
@@ -54,9 +41,8 @@ jobs:
     - name: Build
       uses: actions-rs/cargo@v1
       with:
-        use-cross: ${{ matrix.cross }}
         command: build
-        args: --release --target ${{ matrix.target }}
+        args: --release --locked
 
     - name: Upload binaries to release
       uses: actions/upload-artifact@v2
