@@ -226,7 +226,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
           .interact()
           .unwrap();
     
-        seasons[season_id].to_owned()
+        options[season_id].to_owned()
       }
     }
   };
@@ -234,6 +234,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   if args.json {
     println!("{}", serde_json::to_string(&course_data)?);
   } else {
+    // there will be two inner tables
     let mut table = table![["Course", "Lecture Times"]];
 
     for (course, lecture_data) in course_data {
