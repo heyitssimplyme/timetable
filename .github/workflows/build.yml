@@ -4,7 +4,7 @@ on: push
 
 jobs:
   publish:
-    name: Build for ${{ matrix.os }}
+    name: Build for ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -21,7 +21,7 @@ jobs:
             asset_name: timetable-linux
             target: x86_64-unknown-linux-gnu
             cross: false
-          - name: raspbian
+          - name: armv7
             os: ubuntu-latest
             artifact_name: target/release/timetable
             asset_name: timetable-armv7
@@ -31,7 +31,7 @@ jobs:
             os: windows-latest
             artifact_name: target/release/timetable.exe
             asset_name: timetable-win
-            target: stable-x86_64-pc-windows-msvc
+            target: x86_64-pc-windows-msvc
             cross: false
           - name: macos
             os: macos-latest
