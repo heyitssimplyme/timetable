@@ -21,6 +21,11 @@ struct Cli {
   password: String,
   #[structopt(short, long, help = "Output as json rather than a table")]
   json: bool,
+
+  #[structopt(short, long, help = "Season for the course")]
+  season: Option<String>,
+  #[structopt(short, long, help = "Index in the list of courses")]
+  index: Option<i32>,
 }
 
 #[derive(Debug)]
@@ -187,12 +192,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let mut sessions_data = parse_sessions_page(&client).await?;
   
-  let selection = Select::with_theme(&ColorfulTheme::default())
-    .with_prompt("Choose which term")
-    .default(0)
-    .items(&sessions_data.sessions[1..])
-    .interact()
-    .unwrap() as i32;
+  let selection: i32 = {
+    match args.index {
+      Some(index) => index,
+      None => {
+        Select::with_theme(&ColorfulTheme::default())
+          .with_prompt("Choose which term")
+          .default(0)
+          .items(&sessions_data.sessions[1..])
+          .interact()
+          .unwrap() as i32
+      }
+    }
+  };
 
   // get to the session summary page
   let details_doc = get_course_details(&client, selection, &mut sessions_data).await?;
@@ -200,18 +212,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   // get the season from the string
   let seasons: HashSet<String> = course_data.keys().map(|k| k.split_ascii_whitespace().next().unwrap().to_owned()).collect();
-  let mut seasons: Vec<String> = seasons.iter().cloned().collect();
-  seasons.insert(0, "All".into());
+  let seasons: Vec<String> = seasons.iter().cloned().collect();
 
-  let season_id = Select::with_theme(&ColorfulTheme::default())
-    .with_prompt("Choose which season")
-    .default(0)
-    .items(&seasons)
-    .interact()
-    .unwrap();
-
-  let season = &seasons[season_id];
-  println!("{:?}", season);
+  let season: String = {
+    match args.season {
+      Some(season) => season,
+      None => {
+        let options = [vec![String::from("All")], seasons.clone()].concat();
+        let season_id = Select::with_theme(&ColorfulTheme::default())
+          .with_prompt("Choose which season")
+          .default(0)
+          .items(&options)
+          .interact()
+          .unwrap();
+    
+        seasons[season_id].to_owned()
+      }
+    }
+  };
 
   if args.json {
     println!("{}", serde_json::to_string(&course_data)?);
@@ -220,7 +238,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for (course, lecture_data) in course_data {
       // only for that season unless all
-      if !course.starts_with(season) && season != "All" { continue; }
+      if !course.starts_with(&season) && season != "All" { continue; }
 
       let mut inner_table = table![];
       for (format, lecture_times) in lecture_data {
