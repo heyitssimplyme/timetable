@@ -8,13 +8,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        name: [
-          linux,
-          raspbian,
-          windows,
-          macos
-        ]
-
         include:
           - name: linux
             os: ubuntu-latest
