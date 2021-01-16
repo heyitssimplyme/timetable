@@ -1741,6 +1741,7 @@ name = "timetable"
 version = "0.1.0"
 dependencies = [
  "dialoguer",
+ "openssl",
  "prettytable-rs",
  "reqwest",
  "scraper",
